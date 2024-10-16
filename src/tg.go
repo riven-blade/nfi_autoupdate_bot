@@ -16,9 +16,10 @@ func ShowConfig(bot *tgbotapi.BotAPI, chatID int64, config Config) {
 			}
 		}
 		configOutInfo = append(configOutInfo, ConfigOutput{
-			Name:       info.Name,
-			Version:    info.Version,
-			UpdateFile: updateFile,
+			Name:          info.Name,
+			Version:       info.Version,
+			GithubVersion: info.GitVersion,
+			UpdateFile:    updateFile,
 		})
 	}
 	outInfo, _ := yaml.Marshal(&configOutInfo)

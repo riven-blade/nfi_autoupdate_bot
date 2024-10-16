@@ -77,7 +77,7 @@ func CalculateCheckSum(filePath string) (string, error) {
 }
 
 // CheckAndReplaceFile 检查和替换文件
-func CheckAndReplaceFile(localPath, githubFileURL string) (error, bool) {
+func CheckAndReplaceFile(localPath, githubFileURL string, isChange bool) (error, bool) {
 	// 计算本地文件的校验和
 	localCheckSum, err := CalculateCheckSum(localPath)
 	if err != nil {
@@ -97,7 +97,7 @@ func CheckAndReplaceFile(localPath, githubFileURL string) (error, bool) {
 	if localCheckSum == githubCheckSum {
 		fmt.Println("Files are identical. No update needed.")
 		return nil, false
-	} else {
+	} else if isChange {
 		// 如果不同，覆盖本地文件
 		err := copyFile(githubFileURL, localPath)
 		if err != nil {

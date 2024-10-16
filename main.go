@@ -23,8 +23,6 @@ func main() {
 		log.Fatalf("Error parsing YAML file: %v", err)
 	}
 
-	config.Status = true
-
 	// 初始化代码
 	exists, err := src.CheckFolderExists("github")
 	if err != nil {
@@ -86,7 +84,7 @@ func main() {
 					src.Start(bot, config.TgUserID)
 				case "/sync_config":
 					src.SyncConfig(bot, config.TgUserID)
-					task(bot)
+					task(bot, true)
 					src.ShowConfig(bot, config.TgUserID, config)
 				default:
 					msgDefault := tgbotapi.NewMessage(config.TgUserID, "Unknown command. Try /show_config or /sync_config.")
@@ -96,29 +94,27 @@ func main() {
 		}
 	}()
 
-	// 创建一个 30 分钟的 ticker
-	ticker := time.NewTicker(30 * time.Minute)
+	// 创建一个 15 分钟的 ticker
+	ticker := time.NewTicker(15 * time.Minute)
 	defer ticker.Stop()
 	// 立即执行一次任务
-	task(bot)
+	task(bot, config.Status)
 	// 使用 for 循环不断监听 ticker
 	for {
 		select {
 		case <-ticker.C:
-			// 每 30 分钟触发一次
-			if config.Status {
-				task(bot)
-			}
+			// 每 15 分钟触发一次
+			task(bot, config.Status)
 		}
 	}
 }
 
-func task(bot *tgbotapi.BotAPI) {
+func task(bot *tgbotapi.BotAPI, canChange bool) {
 	hasChange := false
 	for i, info := range config.UpdateInfos {
 		isChangedFlag := false
 		for j, file := range info.Files {
-			err, isChange := src.CheckAndReplaceFile(file.FilePath, file.GithubFilePath)
+			err, isChange := src.CheckAndReplaceFile(file.FilePath, file.GithubFilePath, canChange)
 			if err != nil {
 				fmt.Printf("Error updating %v file %v: %v", info.Name, file.FilePath, err)
 				continue
@@ -135,13 +131,15 @@ func task(bot *tgbotapi.BotAPI) {
 		// 改变了， call 一下重启接口
 		if isChangedFlag {
 			hasChange = true
-			err := src.RestartBot(info.RestartAPI, config.Username, config.Password)
-			if err != nil {
-				fmt.Printf("Error restarting bot: %v", err)
-				continue
+			if canChange {
+				err := src.RestartBot(info.RestartAPI, config.Username, config.Password)
+				if err != nil {
+					fmt.Printf("Error restarting bot: %v", err)
+					continue
+				}
+				msg := tgbotapi.NewMessage(config.TgUserID, fmt.Sprintf("success update %v!", info.Name))
+				_, err = bot.Send(msg)
 			}
-			msg := tgbotapi.NewMessage(config.TgUserID, fmt.Sprintf("success update %v!", info.Name))
-			_, err = bot.Send(msg)
 		}
 	}
 
@@ -151,6 +149,8 @@ func task(bot *tgbotapi.BotAPI) {
 			if file.HasVersion {
 				versionNum := src.GetVersions(file.FilePath)
 				config.UpdateInfos[i].Version = versionNum
+				versionGithubNum := src.GetVersions(file.GithubFilePath)
+				config.UpdateInfos[i].GitVersion = versionGithubNum
 			}
 		}
 	}

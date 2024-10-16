@@ -12,6 +12,7 @@ type UpdateInfo struct {
 	RestartAPI string     `yaml:"restart_api"`
 	Name       string     `yaml:"name"`
 	Version    string     `yaml:"version"`
+	GitVersion string     `yaml:"git_version"`
 	Files      []FileInfo `yaml:"files"`
 }
 
@@ -26,7 +27,8 @@ type Config struct {
 }
 
 type ConfigOutput struct {
-	Name       string   `yaml:"name"`
-	Version    string   `yaml:"version"`
-	UpdateFile []string `yaml:"update_file"`
+	Name          string   `yaml:"name"`
+	Version       string   `yaml:"version"`
+	GithubVersion string   `yaml:"github_version"`
+	UpdateFile    []string `yaml:"update_file"`
 }
