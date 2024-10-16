@@ -78,10 +78,10 @@ func main() {
 					src.ShowConfig(bot, config.TgUserID, config)
 				case "/start":
 					config.Status = true
-					src.Stop(bot, config.TgUserID)
+					src.Start(bot, config.TgUserID)
 				case "/stop":
 					config.Status = false
-					src.Start(bot, config.TgUserID)
+					src.Stop(bot, config.TgUserID)
 				case "/sync_config":
 					src.SyncConfig(bot, config.TgUserID)
 					task(bot, true)
