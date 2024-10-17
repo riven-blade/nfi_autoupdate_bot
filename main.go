@@ -50,8 +50,8 @@ func main() {
 
 	keyboard := tgbotapi.NewReplyKeyboard(
 		tgbotapi.NewKeyboardButtonRow(
-			tgbotapi.NewKeyboardButton("/show_config"),
-			tgbotapi.NewKeyboardButton("/sync_config"),
+			tgbotapi.NewKeyboardButton("/show"),
+			tgbotapi.NewKeyboardButton("/sync"),
 			tgbotapi.NewKeyboardButton("/start"),
 			tgbotapi.NewKeyboardButton("/stop"),
 		),
@@ -74,7 +74,7 @@ func main() {
 		for tgMsg := range updatesTgMsg {
 			if tgMsg.Message != nil {
 				switch tgMsg.Message.Text {
-				case "/show_config":
+				case "/show":
 					src.ShowConfig(bot, config.TgUserID, config)
 				case "/start":
 					config.Status = true
@@ -82,12 +82,12 @@ func main() {
 				case "/stop":
 					config.Status = false
 					src.Stop(bot, config.TgUserID)
-				case "/sync_config":
+				case "/sync":
 					src.SyncConfig(bot, config.TgUserID)
 					task(bot, true)
 					src.ShowConfig(bot, config.TgUserID, config)
 				default:
-					msgDefault := tgbotapi.NewMessage(config.TgUserID, "Unknown command. Try /show_config or /sync_config.")
+					msgDefault := tgbotapi.NewMessage(config.TgUserID, "Unknown command. Try /show.")
 					bot.Send(msgDefault)
 				}
 			}
