@@ -110,6 +110,11 @@ func main() {
 }
 
 func task(bot *tgbotapi.BotAPI, canChange bool) {
+	err := src.GitPull("github")
+	if err != nil {
+		log.Fatalf("Error pulling github: %v", err)
+	}
+
 	hasChange := false
 	for i, info := range config.UpdateInfos {
 		isChangedFlag := false
