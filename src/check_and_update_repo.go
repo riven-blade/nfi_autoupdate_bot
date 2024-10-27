@@ -130,7 +130,7 @@ func removeComments(filePath string) (string, error) {
 	defer inputFile.Close()
 
 	// 创建临时文件来存储无注释的内容
-	tempFilePath := "temp/" + uuid.New().String() + ".json"
+	tempFilePath := "temp/" + uuid.New().String()
 	outputFile, err := os.Create(tempFilePath)
 	if err != nil {
 		return "", fmt.Errorf("failed to create temp file: %v", err)
@@ -163,6 +163,7 @@ func removeComments(filePath string) (string, error) {
 	if err = json5.NewDecoder(tempFile).Decode(&tempFileMap); err != nil {
 		return "", fmt.Errorf("error decoding file: %v", err)
 	}
+
 	marshal, err := json.MarshalIndent(&tempFileMap, "", "  ")
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal temp file: %v", err)
