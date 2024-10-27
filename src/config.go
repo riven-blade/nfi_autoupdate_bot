@@ -17,13 +17,14 @@ type UpdateInfo struct {
 }
 
 type Config struct {
-	UpdateInfos []UpdateInfo `yaml:"update_infos"`
-	Github      string       `yaml:"github"`
-	TgBot       string       `yaml:"tg_bot"`
-	TgUserID    int64        `yaml:"tg_user_id"`
-	Status      bool         `yaml:"status"`
-	Username    string       `yaml:"username"`
-	Password    string       `yaml:"password"`
+	UpdateInfos  []UpdateInfo `yaml:"update_infos"`
+	Github       string       `yaml:"github"`
+	TgBot        string       `yaml:"tg_bot"`
+	TgUserID     int64        `yaml:"tg_user_id"`
+	Status       bool         `yaml:"status"`
+	Username     string       `yaml:"username"`
+	Password     string       `yaml:"password"`
+	IntervalTime int64        `yaml:"interval_time"`
 }
 
 type ConfigOutput struct {

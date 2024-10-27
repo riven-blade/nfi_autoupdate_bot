@@ -3,9 +3,12 @@ package src
 import (
 	"bufio"
 	"crypto/sha256"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/go-git/go-git/v5"
+	"github.com/google/uuid"
+	"github.com/yosuke-furukawa/json5/encoding/json5"
 	"io"
 	"os"
 	"strings"
@@ -78,6 +81,15 @@ func CalculateCheckSum(filePath string) (string, error) {
 
 // CheckAndReplaceFile 检查和替换文件
 func CheckAndReplaceFile(localPath, githubFileURL string, isChange bool) (error, bool) {
+	// 处理githubFileURL 中的注释
+	if strings.HasSuffix(githubFileURL, ".json") {
+		processedFile, err := removeComments(githubFileURL)
+		if err != nil {
+			return fmt.Errorf("error removing comments: %v", err), false
+		}
+		defer os.Remove(processedFile) // 清理临时文件
+		githubFileURL = processedFile
+	}
 	// 计算本地文件的校验和
 	localCheckSum, err := CalculateCheckSum(localPath)
 	if err != nil {
@@ -107,6 +119,59 @@ func CheckAndReplaceFile(localPath, githubFileURL string, isChange bool) (error,
 	}
 
 	return nil, true
+}
+
+// removeComments 移除 JSON 文件中的 // 注释
+func removeComments(filePath string) (string, error) {
+	inputFile, err := os.Open(filePath)
+	if err != nil {
+		return "", fmt.Errorf("failed to open file: %v", err)
+	}
+	defer inputFile.Close()
+
+	// 创建临时文件来存储无注释的内容
+	tempFilePath := "temp/" + uuid.New().String() + ".json"
+	outputFile, err := os.Create(tempFilePath)
+	if err != nil {
+		return "", fmt.Errorf("failed to create temp file: %v", err)
+	}
+	defer outputFile.Close()
+
+	// 逐行读取文件内容并去除注释
+	scanner := bufio.NewScanner(inputFile)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if idx := strings.Index(line, "//"); idx != -1 {
+			line = line[:idx]
+		}
+		_, err := outputFile.WriteString(line + "\n")
+		if err != nil {
+			return "", fmt.Errorf("error writing to temp file: %v", err)
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return "", fmt.Errorf("error scanning file: %v", err)
+	}
+
+	tempFile, err := os.Open(tempFilePath)
+	if err != nil {
+		return "", fmt.Errorf("failed to open file: %v", err)
+	}
+	defer tempFile.Close()
+
+	var tempFileMap interface{}
+	if err = json5.NewDecoder(tempFile).Decode(&tempFileMap); err != nil {
+		return "", fmt.Errorf("error decoding file: %v", err)
+	}
+	marshal, err := json.MarshalIndent(&tempFileMap, "", "  ")
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal temp file: %v", err)
+	}
+	err = os.WriteFile(tempFilePath, marshal, 0644)
+	if err != nil {
+		return "", fmt.Errorf("failed to write to temp file: %v", err)
+	}
+	return tempFilePath, nil
 }
 
 func CheckFolderExists(folderPath string) (bool, error) {

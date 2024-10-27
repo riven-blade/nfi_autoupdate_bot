@@ -41,6 +41,16 @@ func main() {
 		}
 	}
 
+	if err = os.MkdirAll("temp", os.ModePerm); err != nil {
+		fmt.Printf("failed to create temp directory: %v", err.Error())
+	}
+
+	if config.IntervalTime == 0 {
+		config.IntervalTime = 15
+	}
+
+	fmt.Println("interval time: ", config.IntervalTime)
+
 	// 初始化 Telegram Bot
 	bot, err := tgbotapi.NewBotAPI(config.TgBot)
 	if err != nil {
@@ -95,7 +105,7 @@ func main() {
 	}()
 
 	// 创建一个 15 分钟的 ticker
-	ticker := time.NewTicker(15 * time.Minute)
+	ticker := time.NewTicker(time.Duration(config.IntervalTime) * time.Minute)
 	defer ticker.Stop()
 	// 立即执行一次任务
 	task(bot, config.Status)
